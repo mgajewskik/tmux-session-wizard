@@ -27,7 +27,7 @@ You must have [fzf](https://github.com/junegunn/fzf), [zoxide](https://github.co
 Add plugin to the list of TPM plugins in `.tmux.conf`:
 
 ```tmux
-set -g @plugin '27medkamal/tmux-session-wizard'
+set -g @plugin 'mgajewskik/tmux-session-wizard'
 ```
 
 Hit `prefix + I` to fetch the plugin and source it. That's it!
@@ -36,7 +36,7 @@ Hit `prefix + I` to fetch the plugin and source it. That's it!
 
 Clone the repo:
 
-    $ git clone https://github.com/27medkamal/tmux-session-wizard ~/clone/path
+    $ git clone https://github.com/mgajewskik/tmux-session-wizard ~/clone/path
 
 Add this line to the bottom of `.tmux.conf`:
 
@@ -65,9 +65,9 @@ set -g @session-wizard-width 80
 
 Run the following to download the script and add it to your path.
 ```bash
-curl https://raw.githubusercontent.com/27medkamal/tmux-session-wizard/master/session-wizard.sh > /usr/local/bin/t && chmod u+x /usr/local/bin/t
+curl https://raw.githubusercontent.com/mgajewskik/tmux-session-wizard/master/session-wizard.sh > /usr/local/bin/t && chmod u+x /usr/local/bin/t
 ```
-You can then run `t` from anywhere to use the script. 
+You can then run `t` from anywhere to use the script.
 
 You can also run `t` with a relative or absolute path to a directory (similar to [zoxide](https://github.com/ajeetdsouza/zoxide)) to create a session for that directory. For example, `t ~/projects/my-project` will create a session named `my-project` and cd into that directory.
 
