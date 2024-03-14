@@ -26,7 +26,8 @@ else
   else
       sed -i "/$RESULT/d" "$ENHANCD_LOG"
   fi
-  SESSION=$(echo "$RESULT" | sed "s|$HOME|~|g" | tr . - | tr ' ' - | tr ':' - | tr '[:upper:]' '[:lower:]')
+  # if path, return everything after second to last slash character
+  SESSION=$(echo "$RESULT" | awk -F/ '{print $(NF-1)"/"$NF}' | tr . - | tr ' ' - | tr ':' - | tr '[:upper:]' '[:lower:]')
   if ! tmux has-session -t="$SESSION" 2> /dev/null; then
     tmux new-session -d -s "$SESSION" -c "$RESULT"
   fi
