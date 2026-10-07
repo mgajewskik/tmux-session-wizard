@@ -1,0 +1,57 @@
+# bats file_tags=integration
+setup() {
+  load ./lib/bats.bash
+  _common_setup
+  # These tests assert basename session names; pin directory mode.
+  echo "set -g @session-wizard-mode 'directory'" >>"$TMUX_CONFIG"
+}
+
+teardown() {
+  _common_teardown
+}
+
+@test "t --kill-row off kills the session for a picker row" {
+  mkdir -p "$TEST_DIR/dir1" "$TEST_DIR/dir2"
+  t "$TEST_DIR/dir1"
+  t "$TEST_DIR/dir2"
+  assert_tmux_sessions_number 2
+  t --kill-row off "dir1: 1 window(s)"
+  assert_tmux_sessions_number 1
+  assert_tmux_session_exists "dir2"
+}
+
+@test "t --kill-row on kills only the window, session survives" {
+  mkdir -p "$TEST_DIR/dir1"
+  t "$TEST_DIR/dir1"
+  tmux new-window -t "dir1:9" -n "second"
+  windows=$(tmux list-windows -t "dir1" | wc -l | tr -d '[:space:]')
+  assert_equal "$windows" "2"
+  t --kill-row on "dir1: second(9)"
+  windows=$(tmux list-windows -t "dir1" | wc -l | tr -d '[:space:]')
+  assert_equal "$windows" "1"
+  assert_tmux_session_exists "dir1"
+}
+
+@test "t --kill-row leaves sessions alone for a directory row" {
+  mkdir -p "$TEST_DIR/dir1"
+  t "$TEST_DIR/dir1"
+  assert_tmux_sessions_number 1
+  t --kill-row off "$TEST_DIR/dir1"
+  assert_tmux_sessions_number 1
+}
+
+@test "t --list-sessions on lists window rows (kill-reload in windows mode)" {
+  mkdir -p "$TEST_DIR/dir1"
+  t "$TEST_DIR/dir1"
+  tmux new-window -t "dir1" -n "second"
+  run t --list-sessions on
+  assert_line --partial "dir1: "
+  assert_line --partial "second("
+}
+
+@test "t --list-sessions prints picker rows for existing sessions" {
+  mkdir -p "$TEST_DIR/dir1"
+  t "$TEST_DIR/dir1"
+  run t --list-sessions off
+  assert_line --index 0 --partial "dir1: 1 window(s)"
+}
