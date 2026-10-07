@@ -29,7 +29,7 @@ set_session_wizard_options() {
   width=$(get_tmux_option "$tmux_option_session_wizard_width" "$default_width")
   local key
   for key in $(echo "${key_bindings}" | sed 's/ /\n/g'); do
-    tmux bind "$key" display-popup -w "$width"% -h "$height"% -E "$CURRENT_DIR/bin/t"
+    tmux bind "$key" display-popup -w "$width"% -h "$height"% -E "bash $CURRENT_DIR/bin/t"
   done
 }
 
