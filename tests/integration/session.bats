@@ -1,0 +1,104 @@
+# bats file_tags=integration
+setup() {
+  load ./lib/bats.bash
+  _common_setup
+}
+
+teardown() {
+  _common_teardown
+}
+
+@test "'parent-child' is default mode" {
+  t .
+  assert_tmux_option_equal "@session-wizard-mode" "parent-child"
+}
+
+verify_session_name() {
+  local dir="$1"
+  local expected_session_name="$2"
+  mkdir -p "$dir"
+  # Run session-wizard
+  t "$dir"
+  # Check if session was created with expected name
+  assert_tmux_sessions_number 1
+  assert_tmux_session_exists "$expected_session_name"
+  # Cleanup
+  _stop_tmux
+}
+
+# Test data is expected_session_name|directory pairs (macOS ships bash 3.2,
+# which has no associative arrays).
+@test "Session name for 'directory' mode should be normalized directory name" {
+  echo "set -g @session-wizard-mode 'directory'" >>"$TMUX_CONFIG"
+  while IFS='|' read -r expected_session_name dir; do
+    verify_session_name "$dir" "$expected_session_name"
+  done <<EOF
+dir|$TEST_DIR/dir
+dir-2|$TEST_DIR/dir.2
+dir_3|$TEST_DIR/DIR_3
+EOF
+}
+
+@test "Session name for 'full-path' mode should be normalized full path" {
+  echo "set -g @session-wizard-mode 'full-path'" >>"$TMUX_CONFIG"
+  HOME="/tmp/home"
+
+  while IFS='|' read -r expected_session_name dir; do
+    verify_session_name "$dir" "$expected_session_name"
+  done <<EOF
+$TEST_DIR/dir|$TEST_DIR/dir
+$TEST_DIR/dir-2|$TEST_DIR/dir.2
+$TEST_DIR/dir_3|$TEST_DIR/DIR_3
+EOF
+}
+
+@test "Session name for 'short-path' mode should be normalized short path" {
+  echo "set -g @session-wizard-mode 'short-path'" >>"$TMUX_CONFIG"
+  HOME="/tmp/home"
+
+  while IFS='|' read -r expected_session_name dir; do
+    verify_session_name "$dir" "$expected_session_name"
+  done <<EOF
+/tm/te/dir|/tmp/tests/dir
+/tm/te/dir-2|/tmp/tests/dir.2
+/tm/te/-h/dir_3|/tmp/tests/.hidden/DIR_3
+EOF
+}
+
+@test "Session name for 'parent-child' mode should be parent/child" {
+  # Default mode is parent-child; still set explicitly for clarity.
+  echo "set -g @session-wizard-mode 'parent-child'" >>"$TMUX_CONFIG"
+
+  while IFS='|' read -r expected_session_name dir; do
+    verify_session_name "$dir" "$expected_session_name"
+  done <<EOF
+tests/dir|$TEST_DIR/dir
+tests/dir-2|$TEST_DIR/dir.2
+-hidden/dir_3|$TEST_DIR/.hidden/DIR_3
+EOF
+}
+
+@test "Unresolvable path exits clean and leaves no bootstrap session behind" {
+  # Regression: this path used to leak the temp bootstrap session (and its
+  # mktemp dir) when no tmux server was running yet.
+  run t /no/such/dir-ever
+  assert_success
+  run tmux list-sessions
+  assert_failure # no server at all: the bootstrap session was cleaned up
+}
+
+@test "Run session-wizard twice with the same directory should create ONLY one session" {
+  mkdir -p "$TEST_DIR/dir"
+  t "$TEST_DIR/dir"
+  assert_tmux_sessions_number 1
+  t "$TEST_DIR/dir"
+  assert_tmux_sessions_number 1
+}
+@test "Run session-wizard twice with different directory should create two sessions" {
+  mkdir -p "$TEST_DIR/dir1"
+  mkdir -p "$TEST_DIR/dir2"
+  t "$TEST_DIR/dir1"
+  assert_tmux_sessions_number 1
+  t "$TEST_DIR/dir2"
+  assert_tmux_sessions_number 2
+}
