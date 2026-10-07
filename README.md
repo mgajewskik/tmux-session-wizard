@@ -40,6 +40,15 @@ set -g @plugin 'mgajewskik/tmux-session-wizard'
 
 Hit `prefix + I` to fetch the plugin and source it. That's it!
 
+If the popup key does nothing after install (files from a Contents-API push can lose the executable bit), run:
+
+```sh
+chmod +x ~/.tmux/plugins/tmux-session-wizard/bin/t \
+         ~/.tmux/plugins/tmux-session-wizard/session-wizard.tmux
+```
+
+(or the same paths under `~/.config/tmux/plugins/...`).
+
 ### Manual Installation
 
 Clone the repo:
@@ -49,7 +58,7 @@ Clone the repo:
 Add this line to the bottom of `.tmux.conf`:
 
 ```tmux
-run-shell ~/clone/path/tmux-session-wizard.tmux
+run-shell "bash ~/clone/path/session-wizard.tmux"
 ```
 
 Reload TMUX environment with `$ tmux source-file ~/.tmux.conf`, and that's it.
