@@ -11,7 +11,7 @@ RUN apk add --no-cache \
   grep \
   ncurses \
   sed \
-  tmux \
+  tmux
 
 # bats + helper libraries, pinned
 RUN git clone --depth 1 --branch v1.12.0 https://github.com/bats-core/bats-core /opt/bats \
