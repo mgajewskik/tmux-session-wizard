@@ -11,7 +11,7 @@ _add_tmux_plugin() {
   : >"$ENHANCD_DIR/enhancd.log"
   DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
   export TMUX_CONFIG="$TEST_DIR/tmux.conf"
-  echo "run-shell $DIR/../../session-wizard.tmux" >"$TMUX_CONFIG"
+  echo "run-shell \"bash $DIR/../../session-wizard.tmux\"" >"$TMUX_CONFIG"
 }
 
 _common_setup() {
@@ -22,6 +22,8 @@ _common_setup() {
   load ./lib/tmux-assert
 
   DIR="$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)"
+  # Contents-API pushes land as non-executable; chmod so PATH lookup works in CI/local.
+  chmod +x "$DIR/../../bin/t" "$DIR/../../session-wizard.tmux" 2>/dev/null || true
   PATH="$DIR/../../bin:$PATH"
 
   mkdir -p "$TEST_DIR"
